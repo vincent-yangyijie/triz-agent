@@ -10,36 +10,64 @@ st.set_page_config(
     layout="wide"
 )
 
+# Custom CSS for better styling
+st.markdown("""
+<style>
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        padding: 8px 16px;
+        border-radius: 4px;
+    }
+    .skill-card {
+        background-color: #f0f2f6;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # Title
 st.title("🔧 TRIZ Automation Agent (Skills 1-10)")
-st.markdown("Automated Engineering Problem Solving using TRIZ Methodology.")
+st.markdown("**Automated Engineering Problem Solving using TRIZ Methodology**")
+st.markdown("---")
 
 # Sidebar - Configuration
 with st.sidebar:
-    st.header("Configuration")
+    st.header("⚙️ Configuration")
     model_provider = st.selectbox(
         "Select LLM Provider",
         ["DeepSeek", "Kimi"],
         index=0
     )
     
-    st.info(f"Using **{model_provider}** API via OpenAI Client.")
+    st.info(f"Using **{model_provider}** API")
     
     # Initialize LLM Engine
     try:
         if "llm" not in st.session_state or st.session_state.current_provider != model_provider:
             st.session_state.llm = LLMEngine(provider=model_provider)
             st.session_state.current_provider = model_provider
-        st.success("LLM Connected!")
+        st.success("✅ LLM Connected!")
     except Exception as e:
-        st.error(f"Connection Error: {e}")
+        st.error(f"❌ Connection Error: {e}")
         st.stop()
+    
+    st.markdown("---")
+    st.header("📋 Skills Overview")
+    for skill in SKILLS:
+        st.markdown(f"**{skill.id}.** {skill.name.split('(')[0].strip()}")
 
-# Main Input
-st.subheader("1. Problem Input")
+# Main Input Section
+st.subheader("📥 1. Problem Input")
 
 # File Upload
-uploaded_file = st.file_uploader("Upload Patent/Document (PDF, DOCX, TXT)", type=["pdf", "docx", "txt"])
+uploaded_file = st.file_uploader(
+    "Upload Patent/Document (PDF, DOCX, TXT, MD)", 
+    type=["pdf", "docx", "txt", "md"]
+)
 
 def read_pdf(file):
     import pypdf
@@ -64,15 +92,13 @@ if uploaded_file is not None:
             file_content = read_pdf(uploaded_file)
         elif uploaded_file.name.endswith(".docx"):
             file_content = read_docx(uploaded_file)
-        elif uploaded_file.name.endswith(".txt"):
+        elif uploaded_file.name.endswith(".txt") or uploaded_file.name.endswith(".md"):
             file_content = uploaded_file.read().decode("utf-8")
-        st.success(f"File '{uploaded_file.name}' loaded successfully!")
+        st.success(f"✅ File '{uploaded_file.name}' loaded successfully! ({len(file_content)} characters)")
     except Exception as e:
-        st.error(f"Error reading file: {e}")
+        st.error(f"❌ Error reading file: {e}")
 
-# Text Area (Manual Input or File Content)
-# If a file is uploaded, we pre-fill the text area (optional) or just use the variable.
-# User flow: User can upload OR type. If upload, it populates the area for editing.
+# Text Area
 if file_content:
     default_text = file_content
 else:
@@ -89,86 +115,113 @@ user_input = st.text_area(
 if "results" not in st.session_state:
     st.session_state.results = {}
 
-# Step 1: Clarification
-if st.button("🚀 Analyze Step 1: Engineering Clarification"):
+st.markdown("---")
+
+# Analysis Options
+st.subheader("🚀 2. Analysis Options")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    run_skill1 = st.button("▶️ Run Skill 1 Only", use_container_width=True)
+
+with col2:
+    run_all = st.button("⚡ Run All Skills (1-10)", use_container_width=True)
+
+with col3:
+    clear_results = st.button("🗑️ Clear Results", use_container_width=True)
+
+if clear_results:
+    st.session_state.results = {}
+    st.rerun()
+
+# Run Skill 1 Only
+if run_skill1:
     if not user_input:
-        st.warning("Please provide input text.")
+        st.warning("⚠️ Please provide input text.")
     else:
-        with st.spinner("Analyzing Skill 1: Engineering Clarification..."):
+        with st.spinner("🔄 Analyzing Skill 1: Engineering Clarification..."):
             skill = get_skill_by_id(1)
             prompt = skill.render_prompt(user_input)
             response = st.session_state.llm.generate(prompt)
             st.session_state.results[1] = response
-            st.success("Skill 1 Complete!")
+        st.success("✅ Skill 1 Complete!")
+        st.rerun()
 
-# Display Step 1 Result
-if 1 in st.session_state.results:
-    with st.expander("Skill 1: Engineering Clarification Result", expanded=True):
-        st.markdown(st.session_state.results[1])
-
-    # Context for next steps
-    # We use the Clarified Output + Original Input as context for deep analysis, 
-    # or just Original Input. Let's use Original Input to ensure full context, 
-    # but append the Clarification summary if needed. 
-    # For now, we stick to passing the Original Input to strictly follow "Skill X template".
-    context_text = user_input
-
-    # Step 2-10 Pipeline
-    st.subheader("2. Full TRIZ Analysis (Skills 2-10)")
-    if st.button("⚡ Run Skills 2-10 Sequence"):
+# Run All Skills
+if run_all:
+    if not user_input:
+        st.warning("⚠️ Please provide input text.")
+    else:
         progress_bar = st.progress(0)
+        status_text = st.empty()
         
         for skill in SKILLS:
-            if skill.id == 1:
-                continue # Already done
-                
-            st.write(f"Processing **{skill.name}**...")
-            
-            # Construct Prompt
-            # Some skills might benefit from previous outputs, but the templates take {{input}}.
-            # We pass the User Input.
-            prompt = skill.render_prompt(context_text)
+            status_text.text(f"🔄 Processing {skill.name}...")
+            prompt = skill.render_prompt(user_input)
             
             with st.spinner(f"Generating {skill.name}..."):
                 response = st.session_state.llm.generate(prompt)
                 st.session_state.results[skill.id] = response
             
-            # Update Progress
             progress_bar.progress(skill.id / 10)
         
-        st.success("Full Analysis Complete!")
+        status_text.text("✅ All Skills Complete!")
+        st.success("🎉 Full Analysis Complete!")
+        st.rerun()
 
-# Display All Results
-if len(st.session_state.results) > 1:
-    st.subheader("Analysis Results")
-    tabs = st.tabs([s.name for s in SKILLS])
+# Display Results
+if len(st.session_state.results) > 0:
+    st.markdown("---")
+    st.subheader("📊 3. Analysis Results")
+    
+    # Create tabs for each skill
+    tab_names = [f"Skill {s.id}" for s in SKILLS]
+    tabs = st.tabs(tab_names)
     
     for i, skill in enumerate(SKILLS):
         with tabs[i]:
+            st.markdown(f"### {skill.name}")
+            st.caption(skill.description)
+            
             if skill.id in st.session_state.results:
                 st.markdown(st.session_state.results[skill.id])
                 
-                # Download Button for each
+                # Download Button
                 st.download_button(
-                    label=f"Download {skill.name}",
+                    label=f"📥 Download Skill {skill.id} Result",
                     data=st.session_state.results[skill.id],
                     file_name=f"skill_{skill.id}_output.md",
-                    mime="text/markdown"
+                    mime="text/markdown",
+                    key=f"download_{skill.id}"
                 )
             else:
-                st.info("Run the analysis to see results.")
+                st.info("🔘 Run the analysis to see results.")
 
-# Export All
+# Export All - Sidebar
 if len(st.session_state.results) > 0:
     st.sidebar.markdown("---")
-    full_report = f"# TRIZ Analysis Report\n\nOriginal Input:\n{user_input}\n\n"
+    st.sidebar.header("📥 Export")
+    
+    # Generate Full Report
+    full_report = f"# TRIZ Analysis Report\n\n"
+    full_report += f"## Original Input\n\n{user_input[:500]}...\n\n---\n\n"
+    
     for skill in SKILLS:
         if skill.id in st.session_state.results:
             full_report += f"## {skill.name}\n\n{st.session_state.results[skill.id]}\n\n---\n\n"
-            
+    
     st.sidebar.download_button(
         label="📥 Download Full Report",
         data=full_report,
         file_name="TRIZ_Full_Report.md",
         mime="text/markdown"
     )
+    
+    # Show completion status
+    completed = len(st.session_state.results)
+    st.sidebar.metric("Skills Completed", f"{completed}/10")
+
+# Footer
+st.markdown("---")
+st.caption("TRIZ Automation Agent v2.0 | Powered by DeepSeek/Kimi API")
