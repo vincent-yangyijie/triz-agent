@@ -1,0 +1,13 @@
+.env
+__pycache__/
+*.pyc
+.streamlit/
+.venv/
+venv/
+node_modules/
+*.txt
+*.pdf
+# Skill outputs (optional to ignore, usually better to keep the repo clean)
+*.md
+!requirements.txt
+!README.md

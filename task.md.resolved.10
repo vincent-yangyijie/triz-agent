@@ -1,0 +1,12 @@
+# Task: Patent Analysis CN119500290B
+
+- [x] Retrieve patent text for CN119500290B <!-- id: 0 -->
+- [x] Analyze patent technical content <!-- id: 1 -->
+- [x] Generate Engineering Analysis (Skill 1) <!-- id: 2 -->
+- [x] Generate System/Problem Description (Skill 2) <!-- id: 3 -->
+- [x] Generate TRIZ Technical Contradiction Analysis (Skill 3) <!-- id: 4 -->
+- [x] Generate TRIZ Physical Contradiction Analysis (Skill 4) <!-- id: 5 -->
+- [x] Generate TRIZ Su-Field Analysis (Skill 5) <!-- id: 6 -->
+- [x] Generate TRIZ Technology Evolution Analysis (Skill 6) <!-- id: 7 -->
+- [ ] Generate Advanced TRIZ Concept Analysis (Skill 7) <!-- id: 8 -->
+- [ ] Create Artifacts (Implementation Plan / Walkthrough) if needed <!-- id: 9 -->
