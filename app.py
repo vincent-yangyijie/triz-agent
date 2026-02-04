@@ -11,7 +11,7 @@ st.set_page_config(
 )
 
 # Title
-st.title("🔧 TRIZ Automation Agent (Skills 1-10)")
+st.title("🔧 TRIZ Automation Agent (Skills 1-14)")
 st.markdown("Automated Engineering Problem Solving using TRIZ Methodology.")
 
 # Sidebar - Configuration
@@ -113,9 +113,9 @@ if 1 in st.session_state.results:
     # For now, we stick to passing the Original Input to strictly follow "Skill X template".
     context_text = user_input
 
-    # Step 2-10 Pipeline
-    st.subheader("2. Full TRIZ Analysis (Skills 2-10)")
-    if st.button("⚡ Run Skills 2-10 Sequence"):
+    # Step 2-14 Pipeline
+    st.subheader("2. Full TRIZ Analysis (Skills 2-14)")
+    if st.button("⚡ Run Skills 2-14 Sequence"):
         progress_bar = st.progress(0)
         
         for skill in SKILLS:
@@ -123,7 +123,7 @@ if 1 in st.session_state.results:
                 continue # Already done
                 
             st.write(f"Processing **{skill.name}**...")
-            
+        
             # Construct Prompt
             # Some skills might benefit from previous outputs, but the templates take {{input}}.
             # We pass the User Input.
@@ -134,7 +134,7 @@ if 1 in st.session_state.results:
                 st.session_state.results[skill.id] = response
             
             # Update Progress
-            progress_bar.progress(skill.id / 10)
+            progress_bar.progress(skill.id / 14)
         
         st.success("Full Analysis Complete!")
 
